@@ -1,154 +1,188 @@
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 import statistics
+import os
 
-data = pd.read_csv('20164.csv')
+quarters = ['20164', '20171', '20172', '20173', '20174', '20181', '20182', '20183', '20184', '20191', 
+            '20192', '20193', '20194', '20201', '20202', '20203', '20204', '20211', '20212', '20213', 
+            '20214', '20221', '20222', '20223', '20224', '20231', '20232', '20233', '20234', '20241']
 
-# Net Inpatient Revenue formula = [GrossInpatientRevenueTotal ÷ (GrossInpatientRevenueTotal + GrossOutpatientRevenueTotal)] * NetPatientRevenueTotal
-# CSV Form: [GRIP_TOT ÷ (GRIP_TOT + GROP_TOT)] * NET_TOT
+avg_costs_per_inpatient = []
+avg_costs_per_outpatient = []
+time_labels = []
 
-# Net Outpatient Revenue formula = [GrossOutpatientRevenueTotal ÷ (GrossInpatientRevenueTotal + GrossOutpatientRevenueTotal)] * NetPatientRevenueTotal
-# CSV Form: [GROP_TOT ÷ (GRIP_TOT + GROP_TOT)] * NET_TOT
+for quarter in quarters:
+  file_path = f'{quarter}.csv'
+  if not os.path.exists(file_path):
+    continue
 
-grossInpatientRevenueTotal = data['GRIP_TOT'].tolist()
-grossOutpatientRevenueTotal = data['GROP_TOT'].tolist()
-netPatientRevenueTotal = data['NET_TOT'].tolist()
-totalInpatients = data['DIS_TOT'].tolist()
-totalOutpatients = data['VIS_TOT'].tolist()
-
-grossInpatientRevenueTotalCleaned = []
-sum = 0
-numHospitalsWithData = 0
-for x in grossInpatientRevenueTotal:
-  x = x.replace(" ", "")
-  x = x.replace(",", "")
-  if x != '0':
-    grossInpatientRevenueTotalCleaned.append(int(x))
-    sum += int(x)
-    numHospitalsWithData += 1
-  else:
-    grossInpatientRevenueTotalCleaned.append(0)
-
-meanGrossInpatientRevenueTotal = sum / numHospitalsWithData
-
-grossInpatientRevenueTotalReplaced = []
-
-for x in grossInpatientRevenueTotalCleaned:
-  if x == 0:
-    grossInpatientRevenueTotalReplaced.append(round(meanGrossInpatientRevenueTotal))
-  else:
-    grossInpatientRevenueTotalReplaced.append(x)
+  data = pd.read_csv(file_path)
+  
+  grossInpatientRevenueTotal = data['GRIP_TOT'].tolist()
+  grossOutpatientRevenueTotal = data['GROP_TOT'].tolist()
+  netPatientRevenueTotal = data['NET_TOT'].tolist()
+  totalInpatients = data['DIS_TOT'].tolist()
+  totalOutpatients = data['VIS_TOT'].tolist()
 
 
+  grossInpatientRevenueTotalCleaned = []
+  sum = 0
+  numHospitalsWithData = 0
+  for x in grossInpatientRevenueTotal:
+    if pd.isna(x):
+      grossInpatientRevenueTotalCleaned.append(0)
+    else:
+      if isinstance(x, float):
+        x = str(int(x))
+      else:
+        x = str(x)
 
-grossOutpatientRevenueTotalCleaned = []
-sum = 0
-numHospitalsWithData = 0
-for x in grossOutpatientRevenueTotal:
-  x = x.replace(" ", "")
-  x = x.replace(",", "")
-  if x != '0':
-    grossOutpatientRevenueTotalCleaned.append(int(x))
-    sum += int(x)
-    numHospitalsWithData += 1
-  else:
-    grossOutpatientRevenueTotalCleaned.append(0)
-
-meanGrossOutpatientRevenueTotal = sum / numHospitalsWithData
-
-grossOutpatientRevenueTotalReplaced = []
-
-for x in grossOutpatientRevenueTotalCleaned:
-  if x == 0:
-    grossOutpatientRevenueTotalReplaced.append(round(meanGrossOutpatientRevenueTotal))
-  else:
-    grossOutpatientRevenueTotalReplaced.append(x)
+      x = x.replace(" ", "").replace(",", "")
+      if x != '0':
+        grossInpatientRevenueTotalCleaned.append(int(x))
+        sum += int(x)
+        numHospitalsWithData += 1
+      else:
+        grossInpatientRevenueTotalCleaned.append(0)
 
 
+  meanGrossInpatientRevenueTotal = sum / numHospitalsWithData
+  grossInpatientRevenueTotalReplaced = [round(meanGrossInpatientRevenueTotal) if x == 0 else x for x in grossInpatientRevenueTotalCleaned]
 
-netPatientRevenueTotalCleaned = []
-sum = 0
-numHospitalsWithData = 0
-for x in netPatientRevenueTotal:
-  x = x.replace(" ", "")
-  x = x.replace(",", "")
-  if x != '0':
-    netPatientRevenueTotalCleaned.append(int(x))
-    sum += int(x)
-    numHospitalsWithData += 1
-  else:
-    netPatientRevenueTotalCleaned.append(0)
+  grossOutpatientRevenueTotalCleaned = []
+  sum = 0
+  numHospitalsWithData = 0
+  for x in grossOutpatientRevenueTotal:
+    if pd.isna(x):
+      grossOutpatientRevenueTotalCleaned.append(0)
+    else:
+      if isinstance(x, float):
+        x = str(int(x))
+      else:
+        x = str(x)
 
-meanNetPatientRevenueTotal = sum / numHospitalsWithData
+      x = x.replace(" ", "").replace(",", "")
+      if x != '0':
+        grossOutpatientRevenueTotalCleaned.append(int(x))
+        sum += int(x)
+        numHospitalsWithData += 1
+      else:
+        grossOutpatientRevenueTotalCleaned.append(0)
 
-netPatientRevenueTotalReplaced = []
+  meanGrossOutpatientRevenueTotal = sum / numHospitalsWithData
+  grossOutpatientRevenueTotalReplaced = [round(meanGrossOutpatientRevenueTotal) if x == 0 else x for x in grossOutpatientRevenueTotalCleaned]
 
-for x in netPatientRevenueTotalCleaned:
-  if x == 0:
-    netPatientRevenueTotalReplaced.append(round(meanNetPatientRevenueTotal))
-  else:
-    netPatientRevenueTotalReplaced.append(x)
+  netPatientRevenueTotalCleaned = []
+  sum = 0
+  numHospitalsWithData = 0
+  for x in netPatientRevenueTotal:
+    if pd.isna(x):
+      netPatientRevenueTotalCleaned.append(0)
+    else:
+      if isinstance(x, float):
+        x = str(int(x))
+      else:
+        x = str(x)
+
+      x = x.replace(" ", "").replace(",", "").replace("(", "").replace(")", "")
+      if x != '0':
+        netPatientRevenueTotalCleaned.append(int(x))
+        sum += int(x)
+        numHospitalsWithData += 1
+      else:
+        netPatientRevenueTotalCleaned.append(0)
+
+  meanNetPatientRevenueTotal = sum / numHospitalsWithData
+  netPatientRevenueTotalReplaced = [round(meanNetPatientRevenueTotal) if x == 0 else x for x in netPatientRevenueTotalCleaned]
+
+  totalInpatientCleaned = []
+  sum = 0
+  numHospitalsWithData = 0
+  for x in totalInpatients:
+    if pd.isna(x):
+      totalInpatientCleaned.append(0)
+    else:
+      if isinstance(x, float):
+        x = str(int(x))
+      else:
+        x = str(x)
+
+      x = x.replace(" ", "").replace(",", "")
+      if x != '0':
+        totalInpatientCleaned.append(int(x))
+        sum += int(x)
+        numHospitalsWithData += 1
+      else:
+        totalInpatientCleaned.append(0)
+
+  meanTotalInpatientCleaned = sum / numHospitalsWithData
+  totalInpatientReplaced = [round(meanTotalInpatientCleaned) if x == 0 else x for x in totalInpatientCleaned]
+
+  totalOutpatientCleaned = []
+  sum = 0
+  numHospitalsWithData = 0
+  for x in totalOutpatients:
+    if pd.isna(x):
+      totalOutpatientCleaned.append(0)
+    else:
+      if isinstance(x, float):
+        x = str(int(x))
+      else:
+        x = str(x)
+
+      x = x.replace(" ", "").replace(",", "")
+      if x != '0':
+        totalOutpatientCleaned.append(int(x))
+        sum += int(x)
+        numHospitalsWithData += 1
+      else:
+        totalOutpatientCleaned.append(0)
+
+  meanTotalOutpatientCleaned = sum / numHospitalsWithData
+  totalOutpatientReplaced = [round(meanTotalInpatientCleaned) if x == 0 else x for x in totalOutpatientCleaned]
+
+  netInpatientRevenueSum = 0
+  for i in range(len(grossInpatientRevenueTotalReplaced)):
+    netInpatientRevenueSum += (grossInpatientRevenueTotalReplaced[i] / (grossInpatientRevenueTotalReplaced[i]
+                              + grossOutpatientRevenueTotalReplaced[i]) * netPatientRevenueTotalReplaced[i])
+  netInpatientRevenueAvg = netInpatientRevenueSum / len(grossInpatientRevenueTotalReplaced)
+
+  avgCostPerInpatient = netInpatientRevenueAvg / statistics.mean(totalInpatientReplaced)
+  
+  avg_costs_per_inpatient.append(avgCostPerInpatient)
+  year = str(quarter)[:4]
+  qtr = " Q" + str(quarter)[-1]
+  formatted_quarter = year + qtr
+  time_labels.append(formatted_quarter)
 
 
+  netOutpatientRevenueSum = 0
+  for i in range(len(grossOutpatientRevenueTotalReplaced)):
+    netOutpatientRevenueSum += (grossOutpatientRevenueTotalReplaced[i] / (grossInpatientRevenueTotalReplaced[i]
+                              + grossOutpatientRevenueTotalReplaced[i]) * netPatientRevenueTotalReplaced[i])
+  netOutpatientRevenueAvg = netOutpatientRevenueSum / len(grossOutpatientRevenueTotalReplaced)
 
-totalInpatientCleaned = []
-sum = 0
-numHospitalsWithData = 0
-for x in totalInpatients:
-  x = x.replace(" ", "")
-  x = x.replace(",", "")
-  if x != '0':
-    totalInpatientCleaned.append(int(x))
-    sum += int(x)
-    numHospitalsWithData += 1
-  else:
-    totalInpatientCleaned.append(0)
+  avgCostPerOutpatient = netOutpatientRevenueAvg / statistics.mean(totalOutpatientReplaced)
+  
+  avg_costs_per_outpatient.append(avgCostPerOutpatient)
 
-meanTotalInpatientCleaned = sum / numHospitalsWithData
+plt.figure(figsize=(10, 6))
+plt.plot(time_labels, avg_costs_per_inpatient, marker='o', linestyle='-', color='b')
+plt.xlabel('Year and Quarter')
+plt.ylabel('Average Cost Per Inpatient')
+plt.title('Average Cost Per Inpatient Over Time')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.show()
 
-totalInpatientReplaced = []
-
-for x in totalInpatientCleaned:
-  if x == 0:
-    totalInpatientReplaced.append(round(meanTotalInpatientCleaned))
-  else:
-    totalInpatientReplaced.append(x)
-
-
-
-totalOutpatientCleaned = []
-sum = 0
-numHospitalsWithData = 0
-for x in totalOutpatients:
-  x = x.replace(" ", "")
-  x = x.replace(",", "")
-  if x != '0':
-    totalOutpatientCleaned.append(int(x))
-    sum += int(x)
-    numHospitalsWithData += 1
-  else:
-    totalOutpatientCleaned.append(0)
-
-meanTotalOutpatientCleaned = sum / numHospitalsWithData
-
-totalOutpatientReplaced = []
-
-for x in totalOutpatientCleaned:
-  if x == 0:
-    totalOutpatientReplaced.append(round(meanTotalOutpatientCleaned))
-  else:
-    totalOutpatientReplaced.append(x)
-
-    
-
-netInpatientRevenueSum = 0
-for i in range(len(grossInpatientRevenueTotalReplaced)):
-  netInpatientRevenueSum += (grossInpatientRevenueTotalReplaced[i] / (grossInpatientRevenueTotalReplaced[i] + grossOutpatientRevenueTotalReplaced[i]) * netPatientRevenueTotalReplaced[i])
-netInpatientRevenueAvg = netInpatientRevenueSum / len(grossInpatientRevenueTotalReplaced)
-
-netOutpatientRevenueSum = 0
-for i in range(len(grossOutpatientRevenueTotalReplaced)):
-  netOutpatientRevenueSum += (grossOutpatientRevenueTotalReplaced[i] / (grossOutpatientRevenueTotalReplaced[i] + grossInpatientRevenueTotalReplaced[i]) * netPatientRevenueTotalReplaced[i])
-netOutpatientRevenueAvg = netOutpatientRevenueSum / len(grossOutpatientRevenueTotalReplaced)
-
-print(netInpatientRevenueAvg / statistics.mean(totalInpatientReplaced))
-print(netOutpatientRevenueAvg / statistics.mean(totalOutpatientReplaced))
+plt.figure(figsize=(10, 6))
+plt.plot(time_labels, avg_costs_per_outpatient, marker='o', linestyle='-', color='b')
+plt.xlabel('Year and Quarter')
+plt.ylabel('Average Cost Per Outpatient')
+plt.title('Average Cost Per Outpatient Over Time')
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.show()
